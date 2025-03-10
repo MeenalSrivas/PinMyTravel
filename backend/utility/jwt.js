@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Generate a JWT token for a username
 const generateToken = (username) => {
   if (!username) {
     throw new Error("Username is required to generate a token");
@@ -10,23 +11,20 @@ const generateToken = (username) => {
   return jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
 
-
-
-export const verifyToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]
+// Verify a JWT token and return the decoded data
+const verifyToken = (token) => {
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
+    throw new Error("Token is required for verification");
   }
-
+  
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user data to the request
-    next();
+    return decoded;
   } catch (error) {
-    console.error("Invalid token:", error);
-    res.status(403).json({ error: "Invalid token" });
+    console.error("Token verification failed:", error.message);
+    throw new Error("Invalid or expired token");
   }
 };
 
 export default generateToken;
+export { verifyToken };
