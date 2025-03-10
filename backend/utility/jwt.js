@@ -8,7 +8,8 @@ const generateToken = (username) => {
   if (!username) {
     throw new Error("Username is required to generate a token");
   }
-  return jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  console.log("Token generated for user:", username);
+  return jwt.sign({ username }, process.env.JWT_SECRET || "fallbacksecret", { expiresIn: "7d" });
 };
 
 // Verify a JWT token and return the decoded data
@@ -18,11 +19,15 @@ const verifyToken = (token) => {
   }
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Verifying token:", token.substring(0, 10) + "...");
+    // Use fallback secret if environment variable is not set
+    const secret = process.env.JWT_SECRET || "fallbacksecret";
+    const decoded = jwt.verify(token, secret);
+    console.log("Token verified for user:", decoded.username);
     return decoded;
   } catch (error) {
     console.error("Token verification failed:", error.message);
-    throw new Error("Invalid or expired token");
+    throw new Error("Invalid token: " + error.message);
   }
 };
 

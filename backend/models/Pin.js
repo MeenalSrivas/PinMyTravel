@@ -3,42 +3,38 @@ import mongoose from "mongoose";
 const PinSchema = new mongoose.Schema({
     username: {
         type: String,
-        require :true,
+        required: true,
         min: 3,
         max: 20,   
     },
 
     title: {
         type: String,
-        require: true,
-        max: 3
-        
-
+        required: true,
+        minlength: 1,
+        maxlength: 50
     },
-    desc:{
+    desc: {
         type: String,
-        require: true,
-        min:3,
+        required: true,
+        minlength: 3
     },
-    rating:{
+    rating: {
         type: Number,
-        min:0,
-        max:5,
-        require: true,
-
+        min: 0,
+        max: 5,
+        required: true
     },
-    lat:{
-        type:Number,
-        require:true,
+    lat: {
+        type: Number,
+        required: true
     },
-    long:{
-        type:Number,
-        require:true,
-    },
-
+    long: {
+        type: Number,
+        required: true
+    }
 },
-    {timestamps: true}
-
+{timestamps: true}
 );
 
 export default mongoose.model("Pin", PinSchema);

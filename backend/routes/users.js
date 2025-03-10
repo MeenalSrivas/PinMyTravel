@@ -1,9 +1,44 @@
 import express from "express";
 import User from "../models/User.js";
-import generateToken from "../utility/jwt.js";
+import generateToken, { verifyToken } from "../utility/jwt.js";
 import bcrypt from "bcrypt";
 
 const router = express.Router();
+
+// Middleware to authenticate token
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      return res.status(401).json({ error: "Unauthorized - No token provided" });
+    }
+    
+    // Extract the token from the Authorization header
+    const token = authHeader.startsWith("Bearer ") 
+      ? authHeader.substring(7) 
+      : authHeader;
+    
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized - Invalid token format" });
+    }
+    
+    try {
+      const decoded = verifyToken(token);
+      req.user = decoded; // Attach user data to the request
+      next();
+    } catch (error) {
+      console.error("Invalid token:", error);
+      res.status(403).json({ error: "Invalid or expired token" });
+    }
+};
+
+// Verify token endpoint
+router.get("/verify", authenticateToken, (req, res) => {
+    // If middleware passes, the token is valid
+    res.status(200).json({ 
+        valid: true, 
+        username: req.user.username 
+    });
+});
 
 //register
 router.post("/register", async(req, res) => {

@@ -4,11 +4,14 @@ import Map from './components/map.jsx';
 import LoginForm from './components/LoginForm.js';
 import RegisterForm from './components/RegisterForm.js'; 
 import "./components/form.css";
+import "./App.css";
+import axios from "axios";
 
 function App() {
   const [user, setUser] = useState(null);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
   // Debug user state changes
   useEffect(() => {
@@ -22,6 +25,30 @@ function App() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
+      setInitializing(false);
+    };
+
+    const verifyToken = async (token, savedUserData) => {
+      try {
+        console.log("Verifying token with backend...");
+        // Make a request to verify the token is still valid
+        const response = await axios.get("/users/verify", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.status === 200) {
+          console.log("Token verified successfully");
+          setUser(savedUserData);
+        } else {
+          console.log("Token verification failed");
+          clearSession();
+        }
+      } catch (error) {
+        console.error("Token verification failed:", error);
+        clearSession();
+      } finally {
+        setInitializing(false);
+      }
     };
 
     try {
@@ -44,13 +71,8 @@ function App() {
         return;
       }
       
-      // Set user state with valid data
-      setUser(parsedUser);
-      console.log("Session restored for user:", parsedUser.username);
-      
-      // Optional: Verify token with backend
-      // This would be the most secure approach
-      // verifyToken(token).catch(() => clearSession());
+      // Verify the token with the backend
+      verifyToken(token, parsedUser);
       
     } catch (error) {
       console.error("Error restoring session:", error);
@@ -117,6 +139,15 @@ function App() {
     setShowRegisterForm(false);
   };
 
+  // Show loading state while initializing
+  if (initializing) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <Navbar user={user} />
@@ -138,13 +169,31 @@ function App() {
 
       {!user && (
         <div className="auth-buttons">
-          <button onClick={() => setShowLoginForm(true)}>Login</button>
-          <button onClick={() => setShowRegisterForm(true)}>Register</button>
+          <button 
+            className="auth-button login" 
+            onClick={() => setShowLoginForm(true)}
+          >
+            <span className="button-icon">👤</span>
+            Login
+          </button>
+          <button 
+            className="auth-button register" 
+            onClick={() => setShowRegisterForm(true)}
+          >
+            <span className="button-icon">✏️</span>
+            Register
+          </button>
         </div>
       )}
 
       {user && (
-        <button onClick={handleLogout}>Logout</button>
+        <button 
+          className="auth-button logout" 
+          onClick={handleLogout}
+        >
+          <span className="button-icon">🚪</span>
+          Logout
+        </button>
       )}
     </div>
   );

@@ -14,6 +14,7 @@ export default function Map({user}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [errorTimeout, setErrorTimeout] = useState(null);
   
   // MapTiler API key
   maptilersdk.config.apiKey = '3X7gJ3JxMg3rtJRuuo8n';
@@ -115,7 +116,26 @@ export default function Map({user}) {
           throw new Error("No authentication token found");
         }
         
-        console.log("Fetching pins for user:", user?.username);
+        // Get username from user prop or localStorage
+        let username;
+        if (user && user.username) {
+          username = user.username;
+        } else {
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              username = parsedUser.username;
+            } catch (err) {
+              console.error("Error parsing user data from localStorage:", err);
+              throw new Error("Invalid user data in localStorage");
+            }
+          } else {
+            throw new Error("No user data found");
+          }
+        }
+        
+        console.log("Fetching pins for user:", username);
         
         // Get pins for the current user
         const response = await axios.get("/pins", { 
@@ -124,9 +144,14 @@ export default function Map({user}) {
         
         console.log("Pins fetched successfully:", response.data);
         setPins(response.data);
+        setError(null);
       } catch (err) {
         console.error("Error fetching pins:", err);
-        setError("Failed to load pins. Please try again later.");
+        if (pins.length === 0) {
+          setError("Failed to load pins. Please try again later.");
+        } else {
+          console.log("Not showing error because pins were previously loaded");
+        }
       } finally {
         setLoading(false);
       }
@@ -180,13 +205,26 @@ export default function Map({user}) {
     // Show the popup immediately
     marker.togglePopup();
     
+    // Add event listener to the form after popup is added to DOM
+    setTimeout(() => {
+      const form = document.getElementById("newPlaceForm");
+      if (form) {
+        console.log("Form found, attaching submit handler");
+        form.addEventListener("submit", (e) => handleFormSubmit(e, marker));
+      } else {
+        console.error("Form element not found");
+      }
+    }, 100);
+    
     // Handle form submission
-    const handleFormSubmit = async (e) => {
+    const handleFormSubmit = async (e, marker) => {
       e.preventDefault();
       
       const title = document.getElementById("title").value;
       const desc = document.getElementById("desc").value;
       const rating = document.getElementById("rating").value;
+      
+      console.log("Form values:", { title, desc, rating });
       
       if (!title || !desc) {
         alert("Title and review are required");
@@ -238,34 +276,18 @@ export default function Map({user}) {
         console.log("Pin created successfully:", response.data);
         setPins([...pins, response.data]);
         marker.remove();
+        setNewPlace(null);
       } catch (err) {
         console.error("Error adding pin:", err);
         alert("Failed to add pin. Please try again.");
       }
     };
     
-    // Add event listener to the form
-    const form = document.getElementById("newPlaceForm");
-    if (form) {
-      form.addEventListener("submit", handleFormSubmit);
-    }
-    
-    // Add click event to the marker
-    marker.getElement().addEventListener("click", () => {
-      map.current.flyTo({
-        center: [newPlace.lng, newPlace.lat],
-        essential: true,
-      });
-    });
-    
-    // Cleanup function
+    // Cleanup function to remove marker when component unmounts or newPlace changes
     return () => {
-      if (form) {
-        form.removeEventListener("submit", handleFormSubmit);
-      }
-      setNewPlace(null);
+      marker.remove();
     };
-  }, [newPlace, user, pins]);
+  }, [newPlace, map, user, pins]);
 
   // Initialize map
   useEffect(() => {
@@ -298,33 +320,55 @@ export default function Map({user}) {
   useEffect(() => {
     if (!map.current) return;
     
+    console.log("Updating markers for pins:", pins);
+    
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
     
     // Add markers for all pins
     pins.forEach((pin) => {
-      const marker = new maptilersdk.Marker({color: "#FF0000"})
-        .setLngLat([pin.long, pin.lat]) 
-        .setPopup(
-          new maptilersdk.Popup({ offset: 25 })
-            .setHTML(getPopupContent(pin))
-        )
-        .addTo(map.current);
-      
-      // Add click event to fly to the pin
-      marker.getElement().addEventListener("click", () => {
-        map.current.flyTo({
-          center: [pin.long, pin.lat],
-          essential: true,
-          zoom: 5
+      try {
+        console.log("Creating marker for pin:", pin);
+        
+        const marker = new maptilersdk.Marker({color: "#FF0000"})
+          .setLngLat([pin.long, pin.lat]) 
+          .setPopup(
+            new maptilersdk.Popup({ offset: 25 })
+              .setHTML(getPopupContent(pin))
+          )
+          .addTo(map.current);
+        
+        // Add click event to fly to the pin
+        marker.getElement().addEventListener("click", () => {
+          map.current.flyTo({
+            center: [pin.long, pin.lat],
+            essential: true,
+            zoom: 5
+          });
         });
-      });
-      
-      // Store reference to marker
-      markersRef.current.push(marker);
+        
+        // Store reference to marker
+        markersRef.current.push(marker);
+        console.log("Added marker for pin:", pin.title);
+      } catch (err) {
+        console.error("Error adding marker for pin:", pin, err);
+      }
     });
+    
+    console.log("Total markers created:", markersRef.current.length);
   }, [pins]);
+
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timeoutId = setTimeout(() => setError(null), 5000);
+      setErrorTimeout(timeoutId);
+    } else if (errorTimeout) {
+      clearTimeout(errorTimeout);
+      setErrorTimeout(null);
+    }
+  }, [error]);
 
   return (
     <div className="map-wrap">

@@ -79,13 +79,22 @@ input::placeholder, textarea::placeholder{
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(255, 99, 71, 0.9);
-  padding: 10px 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  background-color: rgba(255, 0, 0, 0.7);
   color: white;
-  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 4px;
+  z-index: 1000;
+  font-size: 14px;
+  max-width: 80%;
+  text-align: center;
+  animation: fadeOut 5s forwards;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .login-prompt {
