@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import generateToken, { verifyToken } from "../utility/jwt.js";
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 
 const router = express.Router();
 
@@ -69,8 +69,8 @@ router.post("/register", async(req, res) => {
         }
         
         // Generate new password hash
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const salt = await bcryptjs.genSalt(10);
+        const hashedPassword = await bcryptjs.hash(password, salt);
 
         // Create new user
         const newUser = new User({
@@ -126,7 +126,7 @@ router.post("/login", async(req, res) => {
         }
        
         // Compare password
-        const validPassword = await bcrypt.compare(req.body.password, user.password);
+        const validPassword = await bcryptjs.compare(req.body.password, user.password);
         if (!validPassword) {
             return res.status(400).json("Wrong username or password");
         }

@@ -14,9 +14,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static('./frontend/build'));
-app.get("*", (req, res) =>{
-  res.sendFile("./frontend/build/index.html");
-});
+
 
 
 
