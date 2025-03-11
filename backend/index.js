@@ -46,7 +46,13 @@ mongoose.connect(process.env.Mongo_url, {
 
  app.use("/api/pins", pinRoute);
  app.use("/api/users", userRoute);
+app.get("/", (req,res) =>{
+  res.send({
+    activeStatus: true,
+    error: false,
+  });
 
+})
  //verify token
  
   
