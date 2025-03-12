@@ -4,6 +4,7 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 import './map.css';
 import axios from "axios";
 import {format} from 'timeago.js';
+import { useCallback } from 'react';
 
 export default function Map({user}) {
   const mapContainer = useRef(null);
@@ -157,7 +158,7 @@ export default function Map({user}) {
   }, [isAuthenticated, user]);
 
   // Handle double-click on map to create a new pin
-  const handleDoubleClick = (e) => {
+  const handleDoubleClick = useCallback((e) => {
     console.log("Double-click detected, isAuthenticated:", isAuthenticated);
     console.log("Current user state:", user);
     console.log("Local storage token:", localStorage.getItem("token"));
@@ -175,7 +176,7 @@ export default function Map({user}) {
     } else if (!isAuthenticated) {
       alert("You must be logged in to add pins. Please login or register.");
     }
-  };
+  }, [isAuthenticated,user]);
 
   // Create new pin marker and form when newPlace is set
   useEffect(() => {
