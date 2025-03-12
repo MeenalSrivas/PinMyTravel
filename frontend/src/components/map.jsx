@@ -147,11 +147,7 @@ export default function Map({user}) {
         setError(null);
       } catch (err) {
         console.error("Error fetching pins:", err);
-        if (pins.length === 0) {
-          setError("Failed to load pins. Please try again later.");
-        } else {
-          console.log("Not showing error because pins were previously loaded");
-        }
+        
       } finally {
         setLoading(false);
       }
@@ -300,18 +296,19 @@ export default function Map({user}) {
       zoom: zoom,
     });
     
-    // Add double-click event listener
-    map.current.on('dblclick', handleDoubleClick);
     
-    // Cleanup function
-    return () => {
-      if (map.current) {
-        map.current.off('dblclick', handleDoubleClick);
-        map.current.remove();
-        map.current = null;
-      }
-    };
+    
   }, []);
+
+  useEffect(() => {
+    
+  
+    map.current.on('dblclick', handleDoubleClick);
+  
+    return () => {
+      map.current.off('dblclick', handleDoubleClick);
+    };
+  }, [map, handleDoubleClick]);
 
   // Reference to keep track of markers
   const markersRef = useRef([]);
@@ -368,7 +365,7 @@ export default function Map({user}) {
       clearTimeout(errorTimeout);
       setErrorTimeout(null);
     }
-  }, [error]);
+  }, [error, errorTimeout]);
 
   return (
     <div className="map-wrap">
