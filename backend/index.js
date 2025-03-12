@@ -22,7 +22,7 @@ app.use(express.static('./frontend/build'));
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://pinmytravel.onrender.com"],
      // Allow requests from this origin
     credentials: true, // Allow cookies and credentials
   })
