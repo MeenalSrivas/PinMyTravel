@@ -22,8 +22,8 @@ app.use(express.static('./frontend/build'));
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
-     // Allow requests from this origin
+    origin: "*",
+     // Allow requests from all origin
     credentials: true, // Allow cookies and credentials
   })
 );
