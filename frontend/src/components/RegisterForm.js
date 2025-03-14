@@ -33,7 +33,7 @@ const RegisterForm = ({ onRegister, onClose }) => {
     }
     
     try {
-      const response = await axios.post("/users/register", { 
+      const response = await axios.post("https://pin-my-travel-klro.vercel.app/api/users/register", { 
         username, 
         password,
         email 

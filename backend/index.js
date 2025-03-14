@@ -45,7 +45,7 @@ mongoose.connect(process.env.Mongo_url, {
 
  app.use("/api/pins", pinRoute);
  //app.use("/api/users", userRoute);
- app.post("api/users/register", userRoute);
+app.post("/api/users", userRoute);
 app.get("/", (req,res) =>{
   res.send({
     activeStatus: true,
