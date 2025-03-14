@@ -22,7 +22,7 @@ app.use(express.static('./frontend/build'));
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://pinmytravel.onrender.com"],
+    origin: ["http://localhost:3000", "https://pinmytravel.onrender.com", "https://pin-my-travel-klro.vercel.app"],
      // Allow requests from this origin
     credentials: true, // Allow cookies and credentials
   })
@@ -44,8 +44,8 @@ mongoose.connect(process.env.Mongo_url, {
  .catch((err) => console.log(err));
 
  app.use("/api/pins", pinRoute);
- //app.use("/api/users", userRoute);
-app.post("/api/users", userRoute);
+ app.use("/api/users", userRoute);
+//app.post("/api/users", userRoute);
 app.get("/", (req,res) =>{
   res.send({
     activeStatus: true,
@@ -64,5 +64,3 @@ app.get("/", (req,res) =>{
 app.listen(8800, ()=>{
     console.log("backend listening");
 });
-
-
